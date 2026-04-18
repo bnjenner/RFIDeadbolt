@@ -1,0 +1,7 @@
+{
+    "device": "/dev/ttyACM0",
+    "baudrate": 115200,
+    "hash_file": "__HASH_FILE__",
+    "session_unlock": "loginctl unlock-session",
+    "session_query": "gdbus call --session dest org.gnome.ScreenSaver --object-path /org/gnome/ScreenSaver --method org.gnome.ScreenSaver.GetActive"
+}
