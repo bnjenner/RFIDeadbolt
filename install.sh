@@ -54,6 +54,7 @@ PartOf=graphical-session.target
 Type=simple
 WorkingDirectory=$CONFIG_DIR
 Environment=PYTHONPATH=$SHARE_DIR
+Environment=PYTHONUNBUFFERED=1
 ExecStart=/usr/bin/python3 $SHARE_DIR/gnome_unlock.py
 
 [Install]
