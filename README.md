@@ -64,8 +64,10 @@ The sketch opens the serial port at **115200 baud**, prints `start` once the
 host has opened the port, then polls for tags. Each detected tag's serial
 number is printed as one hex string per line — exactly what the daemon's
 `SerialRFID.listen()` reads. Nothing is printed when no tag is present, or when
-a card is detected but its serial cannot be read (the driver's `None` sentinel,
-which the daemon also ignores if it ever reaches the host).
+a card is detected but its serial cannot be read. On the host side,
+`SerialRFID.listen()` treats the `start` banner, the driver's `None` sentinel
+and blank lines as non-tag traffic and skips them, so they are never enrolled
+as a key or counted as a failed unlock attempt.
 
 ### Flashing
 

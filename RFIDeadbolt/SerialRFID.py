@@ -4,6 +4,10 @@ import serial
 # SerialRFID Class
 class SerialRFID:
 
+	# Lines the firmware sends that are not tag IDs: the banner it prints once the
+	# host opens the port, and its no-tag sentinel.
+	NON_TAG_LINES = frozenset(("start", "None"))
+
 	def __init__(self, device: str, baudrate: int):
 		self.device = device
 		self.baudrate = baudrate
@@ -29,7 +33,7 @@ class SerialRFID:
 			self.__open()
 		while True:
 			data = self.serial_in.readline().decode('utf-8').strip()
-			if data == "None":
+			if not data or data in self.NON_TAG_LINES:
 				yield None
 			else:
 				yield data
