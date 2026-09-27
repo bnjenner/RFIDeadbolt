@@ -11,7 +11,11 @@ tag against a stored SHA-256 hash, and — on a match — calls
 ## Requirements
 
 - Linux with KDE Plasma or GNOME / `systemd --user` (see [Desktop environment](#desktop-environment))
-- Python 3 and `pyserial` (`pip install --user pyserial`)
+- Python 3 and `pyserial`, importable by `/usr/bin/python3` (the interpreter the
+  service runs): `sudo apt install python3-serial`, or
+  `pip install --user pyserial` — on PEP 668 distros (Ubuntu 24.04+, Debian 12+)
+  pip refuses without `--break-system-packages`, which with `--user` still only
+  writes to `~/.local`
 - A USB serial RFID reader — an Arduino Micro + RFID-RC522 presenting as
   `/dev/ttyACM0`; firmware lives in `sketch/` (see [Hardware](#hardware))
 - Your user in the `dialout` group for serial access:
