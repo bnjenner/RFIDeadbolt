@@ -15,8 +15,8 @@ START = None
 FAILED_ATTEMPTS = 0
 
 ########################################################
-# RFIDeadbolt Gnome Unlock
-log.info("RFIDeadbolt: Gnome Unlock")
+# RFIDeadbolt Session Unlock
+log.info("RFIDeadbolt: Session Unlock")
 if __name__ == "__main__":
 
 	############################
@@ -52,7 +52,14 @@ if __name__ == "__main__":
 			screen_status = os.popen(config["session_query"]).read()
 			if "false" in screen_status:
 				log.info("Session Already Unlocked.")
-			elif "true":
+			else:
+				# An unreadable lock state means the wrong session_query for this
+				# desktop -- say so, but still try the unlock rather than no-op.
+				if "true" not in screen_status:
+					log.warning(
+						"Could not read lock state (%r) -- check 'session_query' in config.json.",
+						screen_status.strip(),
+					)
 				os.system(config["session_unlock"])
 				log.info("Session Unlocked.")
 

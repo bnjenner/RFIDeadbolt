@@ -21,8 +21,14 @@ mkdir -p "$SHARE_DIR" "$CONFIG_DIR" "$BIN_DIR" "$UNIT_DIR"
 # Set Proper Permissions
 install -m 644 "$SRC_DIR/SerialRFID.py"   "$SHARE_DIR/"
 install -m 644 "$SRC_DIR/utils.py"        "$SHARE_DIR/"
-install -m 755 "$SRC_DIR/gnome_unlock.py" "$SHARE_DIR/"
+install -m 755 "$SRC_DIR/unlock_daemon.py" "$SHARE_DIR/"
 install -m 755 "$SRC_DIR/create_key.py"   "$SHARE_DIR/"
+
+# Drop the pre-rename daemon left behind by older installs
+if [ -f "$SHARE_DIR/gnome_unlock.py" ]; then
+    rm -f "$SHARE_DIR/gnome_unlock.py"
+    echo "// Removed stale $SHARE_DIR/gnome_unlock.py (renamed to unlock_daemon.py)"
+fi
 
 # Generate config.json from template (only if it doesn't already exist)
 HASH_FILE="$CONFIG_DIR/rfideadbolt.hash"
@@ -46,7 +52,7 @@ chmod 755 "$BIN_DIR/rfideadbolt-create-key"
 # Create RFIDeadbolt service
 cat > "$UNIT_DIR/rfideadbolt.service" <<EOF
 [Unit]
-Description=RFIDeadbolt GNOME session unlocker
+Description=RFIDeadbolt session unlocker
 After=graphical-session.target
 PartOf=graphical-session.target
 
@@ -55,7 +61,7 @@ Type=simple
 WorkingDirectory=$CONFIG_DIR
 Environment=PYTHONPATH=$SHARE_DIR
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/usr/bin/python3 $SHARE_DIR/gnome_unlock.py
+ExecStart=/usr/bin/python3 $SHARE_DIR/unlock_daemon.py
 
 [Install]
 WantedBy=graphical-session.target

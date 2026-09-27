@@ -1,15 +1,16 @@
 # RFIDeadbolt
 
-Unlock your GNOME session by tapping an RFID tag on a USB serial reader.
+Unlock your KDE Plasma or GNOME session by tapping an RFID tag on a USB serial
+reader.
 
 A small Python daemon listens to a serial RFID reader, compares the scanned
 tag against a stored SHA-256 hash, and — on a match — calls
-`loginctl unlock-session` to unlock the active GNOME session. Runs as a
-per-user `systemd` service so it starts with your desktop.
+`loginctl unlock-session` to unlock the active session. Runs as a per-user
+`systemd` service so it starts with your desktop.
 
 ## Requirements
 
-- Linux with GNOME / `systemd --user`
+- Linux with KDE Plasma or GNOME / `systemd --user` (see [Desktop environment](#desktop-environment))
 - Python 3 and `pyserial` (`pip install --user pyserial`)
 - A USB serial RFID reader — an Arduino Micro + RFID-RC522 presenting as
   `/dev/ttyACM0`; firmware lives in `sketch/` (see [Hardware](#hardware))
@@ -144,6 +145,35 @@ If `~/.config/rfideadbolt/config.json` already exists, it is left alone.
 | `session_query`  | Command that prints `true`/`false` for screensaver-active     |
 | `session_unlock` | Command that unlocks the session (default: `loginctl unlock-session`) |
 
+### Desktop environment
+
+Only `session_query` is desktop-specific. The default targets the
+`org.freedesktop.ScreenSaver` interface, which both KDE Plasma and GNOME
+provide, so it needs no changes on either:
+
+```
+gdbus call --session --dest org.freedesktop.ScreenSaver \
+  --object-path /org/freedesktop/ScreenSaver \
+  --method org.freedesktop.ScreenSaver.GetActive
+```
+
+It prints `(true,)` when the screen is locked and `(false,)` when it is not. Run
+it by hand to check your desktop before enabling the service; if it errors, drop
+in the native interface instead:
+
+| Desktop | Native `session_query` destination / path / method                                     |
+| ------- | -------------------------------------------------------------------------------------- |
+| KDE     | `org.kde.screensaver` · `/ScreenSaver` · `org.freedesktop.ScreenSaver.GetActive`        |
+| GNOME   | `org.gnome.ScreenSaver` · `/org/gnome/ScreenSaver` · `org.gnome.ScreenSaver.GetActive`  |
+
+`session_unlock` needs no per-desktop change. `loginctl unlock-session` goes
+through `systemd-logind`, and both GNOME's and Plasma's lockers act on it —
+Plasma's own locker points users at that exact command when its greeter fails.
+
+If `session_query` returns something the daemon cannot read, it logs a warning
+naming the field and still attempts the unlock, so a wrong query degrades loudly
+rather than silently.
+
 ## Repo layout
 
 ```
@@ -152,7 +182,7 @@ RFIDeadbolt/
   SerialRFID.py                thin wrapper around pyserial
   utils.py                     hash save/check helpers
   create_key.py                enroll a tag
-  gnome_unlock.py              the daemon
+  unlock_daemon.py             the daemon
   config_template.json         template — __HASH_FILE__ is filled in at install
 sketch/
   rfid_sketch.ino              Arduino Micro firmware for the RC522 reader
